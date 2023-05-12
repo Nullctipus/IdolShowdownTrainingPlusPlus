@@ -16,7 +16,7 @@ internal class TrainingGUI : IDisposable
     }
     int windowid = PluginInfo.PLUGIN_GUID.GetHashCode();
     Rect windowRect = new(10,10,300,800);
-    static bool ShouldDraw = true;
+    static bool ShouldDraw = false;
     public void OnGUI()
     {
         if(ShouldDraw)
