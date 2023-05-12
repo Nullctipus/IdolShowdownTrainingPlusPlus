@@ -16,6 +16,9 @@ Install IdolShowdownTrainingPlusPlus.dll to Idol Showdown/Bepinex/plugins
 ## Usage
 After installing and opening the game press F8 to open menu. From there you can render the animations by clicking the button
 
+## Issues
+- Projectiles do not render
+
 ## Linux
 If you know how to install bepinex for linux you dont need this
 
