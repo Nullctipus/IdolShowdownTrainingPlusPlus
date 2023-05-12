@@ -11,15 +11,17 @@ internal class RenderAnimations : IDisposable
     Camera renderCamera;
     RenderTexture rt;
     string BasePath = Path.Combine(Application.streamingAssetsPath, "../..", "IdolRenders");
-    public IEnumerator RenderAll()
+    CanvasRenderer[] canvases;
+    RenderTexture oldrt;
+    Texture2D tex;
+    const int RENDER_LAYER = 9;
+    private void Setup()
     {
-        yield return new WaitForEndOfFrame();
-        CanvasRenderer[] canvases = GameObject.FindObjectsOfType<CanvasRenderer>();
+        canvases = GameObject.FindObjectsOfType<CanvasRenderer>();
         foreach (var c in canvases)
             c.gameObject.SetActive(false);
 
         Plugin.IsTraining = true;
-        int layer = 9;
         if (renderCamera == null)
         {
             renderCamera = new GameObject("Training++ RenderCamera").AddComponent<Camera>();
@@ -28,66 +30,19 @@ internal class RenderAnimations : IDisposable
             renderCamera.transform.position = new Vector3(1024, 1024, -5);
             renderCamera.clearFlags = CameraClearFlags.SolidColor;
             renderCamera.backgroundColor = new Color(0, 0, 0, 0);
-            renderCamera.cullingMask = 1 << layer;
+            renderCamera.cullingMask = 1 << RENDER_LAYER;
             rt = new RenderTexture(2048, 2048, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
             renderCamera.targetTexture = rt;
             rt.filterMode = FilterMode.Point;
         }
-        RenderTexture oldrt = RenderTexture.active;
+        oldrt = RenderTexture.active;
         RenderTexture.active = rt;
         Directory.CreateDirectory(BasePath);
-        Idol[] characters = GlobalManager.Instance.GameManager.Characters;
-        Texture2D tex = new Texture2D(rt.width, rt.height);
+        tex = new Texture2D(rt.width, rt.height);
+    }
+    private void Cleanup()
+    {
 
-        foreach (Idol character in characters)
-        {
-            Plugin.Logging.LogInfo(character.charName);
-            Directory.CreateDirectory(Path.Combine(BasePath, character.charName));
-            // Create character
-            GameObject instanced = GameObject.Instantiate(character.originalPrefab, Vector3.zero, Quaternion.identity);
-
-            yield return null; // Let The character Initialize
-            RenderTexture.active = rt; // Make sure we still render to the right place
-
-            instanced.transform.position = new Vector3(1024, 1024, 0);
-
-            // Set layer so it gets rendered
-            instanced.layer = layer;
-            foreach (var t in instanced.GetComponentsInChildren<Transform>(true))
-                t.gameObject.layer = layer;
-
-            // Get list of moves
-
-            Animator animator = instanced.GetComponent<Animator>();
-            MoveQueue moveQueue = instanced.GetComponent<MoveQueue>();
-            moveQueue.StartMe(); // Populate
-            animator.enabled = false;
-
-
-            foreach (var move in moveQueue.CurrentMoveList.ListedInputMoves)
-            {
-
-                Plugin.Logging.LogInfo(move.AnimationName);
-                Directory.CreateDirectory(Path.Combine(BasePath, character.charName, move.AnimationName));
-                animator.Play(move.AnimationName, 0);
-                animator.EvaluateController(.001f);
-
-                AnimationClip clip = animator.GetCurrentAnimatorClipInfo(0)[0].clip;
-                float frametime = 1 / clip.frameRate;
-                int i = 1;
-
-                while (animator.GetCurrentAnimatorStateInfo(0).normalizedTime <= 0.99f)
-                {
-                    renderCamera.Render();
-                    tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
-                    File.WriteAllBytes(Path.Combine(BasePath, character.charName, move.AnimationName, "frame" + i + ".png"), ImageConversion.EncodeToPNG(tex));
-                    animator.Update(frametime);
-                    i++;
-                }
-
-            }
-            GameObject.Destroy(instanced);
-        }
         GameObject.Destroy(tex);
         foreach (var c in canvases)
             c.gameObject.SetActive(true);
@@ -95,8 +50,90 @@ internal class RenderAnimations : IDisposable
         RenderTexture.active = oldrt;
         //reset
         Plugin.IsTraining = GlobalManager.Instance.GameManager.IsGameMode(GameMode.training);
-        yield return null;
+    }
+    private void RenderAnimation(Animator animator, string CharacterName, string AnimationName)
+    {
+        try
+        {
+            Plugin.Logging.LogInfo(AnimationName);
+            Directory.CreateDirectory(Path.Combine(BasePath, CharacterName, AnimationName));
+            animator.Play(AnimationName, 0);
+            animator.EvaluateController(.001f);
 
+            AnimationClip clip = animator.GetCurrentAnimatorClipInfo(0)[0].clip;
+            float frametime = 1 / clip.frameRate;
+            int i = 1;
+
+            while (animator.GetCurrentAnimatorStateInfo(0).normalizedTime <= 0.99f)
+            {
+                renderCamera.Render();
+                tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+                File.WriteAllBytes(Path.Combine(BasePath, CharacterName, AnimationName, "frame" + i + ".png"), ImageConversion.EncodeToPNG(tex));
+                animator.Update(frametime);
+                /*
+                Check for Projectile
+                Set ScaleableTime.DeltaTime
+                Call Projectile.UpdateMe(new(),new())
+                Call Projectile.FinalizeVelocity()
+                */
+                i++;
+            }
+        }
+        catch (Exception e)
+        {
+            Plugin.Logging.LogError(e);
+        }
+    }
+    private IEnumerator RenderCharacter(Idol Character)
+    {
+        Plugin.Logging.LogInfo(Character.charName);
+        Directory.CreateDirectory(Path.Combine(BasePath, Character.charName));
+        // Create character
+        GameObject instanced = GameObject.Instantiate(Character.originalPrefab, Vector3.zero, Quaternion.identity);
+
+        yield return null; // Let The character Initialize
+        RenderTexture.active = rt; // Make sure we still render to the right place
+
+        instanced.transform.position = new Vector3(1024, 1024, 0);
+
+        // Set layer so it gets rendered
+        instanced.layer = RENDER_LAYER;
+        foreach (var t in instanced.GetComponentsInChildren<Transform>(true))
+            t.gameObject.layer = RENDER_LAYER;
+
+        // Get list of moves
+
+        Animator animator = instanced.GetComponent<Animator>();
+        MoveQueue moveQueue = instanced.GetComponent<MoveQueue>();
+        moveQueue.StartMe(); // Populate
+        animator.enabled = false;
+
+
+        foreach (var move in moveQueue.CurrentMoveList.ListedInputMoves)
+        {
+            RenderAnimation(animator, Character.charName, move.AnimationName);
+        }
+        GameObject.Destroy(instanced);
+    }
+    public IEnumerator RenderAll()
+    {
+        yield return new WaitForEndOfFrame();
+        Setup();
+        Idol[] characters = GlobalManager.Instance.GameManager.Characters;
+
+        foreach (Idol character in characters)
+        {
+            yield return RenderCharacter(character);
+        }
+        Cleanup();
+
+    }
+    public IEnumerator OnlyRenderCharacter(Idol Character)
+    {
+        yield return new WaitForEndOfFrame();
+        Setup();
+        yield return RenderCharacter(Character);
+        Cleanup();
     }
     public void Dispose()
     {
