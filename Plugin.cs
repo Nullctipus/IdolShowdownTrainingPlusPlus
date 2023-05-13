@@ -42,6 +42,12 @@ public class Plugin : MonoBehaviour
     public static bool ShouldDrawGizmos => IsTraining;
     internal static bool UseFlatTexture = true;
     internal static Dictionary<Type, IDisposable> Disposables = new();
+
+    internal static KeyCode ToggleFrameWalk = KeyCode.F9;
+    internal static KeyCode ToggleMenu = KeyCode.F8;
+    internal static KeyCode StepFrame = KeyCode.F10;
+
+
     public static event Action drawGUI;
     public static event Action OnUpdate;
     private void OnGUI()

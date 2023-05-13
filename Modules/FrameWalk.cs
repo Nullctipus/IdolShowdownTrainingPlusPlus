@@ -12,9 +12,9 @@ internal class FrameWalk : IDisposable
         Plugin.OnUpdate += OnUpdate;
     }
     private void OnUpdate() {
-        if(Input.GetKeyDown(KeyCode.F))
+        if(Input.GetKeyDown(Plugin.ToggleFrameWalk))
             Enabled ^=true;
-        if(Enabled && Input.GetKeyDown(KeyCode.M))
+        if(Enabled && Input.GetKeyDown(Plugin.StepFrame))
             Step();
     }
     bool _enabled;
