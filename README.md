@@ -5,6 +5,7 @@
 - Display what a move can cancel into in command list
 - Display hit and hurt boxes in training mode
 - Render character animations with hit and hurt boxes to pngs 
+- Step Frames
 
 ## Installation
 Install [Bepinex5](https://github.com/BepInEx/BepInEx)
@@ -14,7 +15,11 @@ Download IdolShowdownTrainingPlusPlus.dll from [Releases](https://github.com/Nul
 Install IdolShowdownTrainingPlusPlus.dll to Idol Showdown/Bepinex/plugins
 
 ## Usage
-After installing and opening the game press F8 to open menu. From there you can render the animations by clicking the button
+F8: Toggle Menu
+
+F: Toggle Frame Walk
+
+M: Step One Frame
 
 ## Issues
 - Projectiles do not render
