@@ -17,9 +17,9 @@ Install IdolShowdownTrainingPlusPlus.dll to Idol Showdown/Bepinex/plugins
 ## Usage
 F8: Toggle Menu
 
-F: Toggle Frame Walk
+F9: Toggle Frame Walk
 
-M: Step One Frame
+f10: Step One Frame
 
 ## Issues
 - Projectiles do not render
