@@ -59,6 +59,7 @@ internal class HarmonyPatches : IDisposable
     #region GeneralPatches
     private static void SetGameModePostfix(GameMode mode)
     {
+        Plugin.GetModule<FrameWalk>().Enabled = false;
         Plugin.IsTraining = mode == GameMode.training;
     }
     private static void OnCommandListInitialized(CommandListGUI __instance, MoveList listOfMoves) { Plugin.GetModule<CommandListAdditions>().Initialize(__instance); }

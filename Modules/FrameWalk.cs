@@ -26,14 +26,15 @@ internal class FrameWalk : IDisposable
         }
         set
         {
-            if (_enabled == value) return;
+            if (_enabled == value || !Plugin.IsTraining) return;
             GlobalManager.Instance.GameManager.OverridePauseValue(value);
             _enabled = value;
         }
     }
     public void Step()
     {
-        Plugin.Instance.StartCoroutine(_Step());
+        if(Plugin.IsTraining)
+            Plugin.Instance.StartCoroutine(_Step());
     }
     IEnumerator _Step()
     {
