@@ -41,8 +41,26 @@ internal class TrainingGUI : IDisposable
         if (ShouldDraw)
             GUI.Window(windowid, windowRect, DrawWindow, "Training++");
     }
+    static bool RenderDropdown = false;
+    static bool FrameWalkDropdown = false;
+    static FrameWalk frameWalk;
     void DrawWindow(int id)
     {
+        Plugin.UseFlatTexture = GUILayout.Toggle(Plugin.UseFlatTexture,"Flat Box Texture");
+        if(GUILayout.Button("Toggle Frame Walk Options"))
+            FrameWalkDropdown ^= true;
+            if(FrameWalkDropdown){
+                if(frameWalk == null) frameWalk = Plugin.GetModule<FrameWalk>();
+                frameWalk.Enabled = GUILayout.Toggle(frameWalk.Enabled,"Frame Walk");
+                if(frameWalk.Enabled)
+                {
+                    if(GUILayout.Button("Step"))
+                        frameWalk.Step();
+                }
+            }
+        if(GUILayout.Button("Toggle Render Options"))
+            RenderDropdown ^= true;
+            if(RenderDropdown){
         if (GUILayout.Button("Render All Animations With Boxes"))
         {
             Plugin.Instance.StartCoroutine(Plugin.GetModule<RenderAnimations>().RenderAll());
@@ -56,6 +74,7 @@ internal class TrainingGUI : IDisposable
 
                 }
             }
+        }
         GUI.DragWindow();
     }
     public void Dispose()

@@ -40,6 +40,7 @@ public class Plugin : MonoBehaviour
     internal static BepInEx.Logging.ManualLogSource Logging => BepInEx.Logging.Logger.CreateLogSource("Training++");
     internal static bool IsTraining;
     public static bool ShouldDrawGizmos => IsTraining;
+    internal static bool UseFlatTexture = true;
     internal static Dictionary<Type, IDisposable> Disposables = new();
     public static event Action drawGUI;
     public static event Action OnUpdate;

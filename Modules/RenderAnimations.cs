@@ -58,7 +58,7 @@ internal class RenderAnimations : IDisposable
             Plugin.Logging.LogInfo(AnimationName);
             Directory.CreateDirectory(Path.Combine(BasePath, CharacterName, AnimationName));
             animator.Play(AnimationName, 0);
-            animator.EvaluateController(.001f);
+            animator.Update(.001f);
 
             AnimationClip clip = animator.GetCurrentAnimatorClipInfo(0)[0].clip;
             float frametime = 1 / clip.frameRate;
@@ -70,6 +70,7 @@ internal class RenderAnimations : IDisposable
                 tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
                 File.WriteAllBytes(Path.Combine(BasePath, CharacterName, AnimationName, "frame" + i + ".png"), ImageConversion.EncodeToPNG(tex));
                 animator.Update(frametime);
+                
                 /*
                 Check for Projectile
                 Set ScaleableTime.DeltaTime

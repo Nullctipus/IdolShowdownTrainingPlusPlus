@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System;
 using System.Reflection;
-using HarmonyLib;
 using UnityEngine;
 using IdolShowdown;
 using IdolShowdown.UI.CommandList;
@@ -101,22 +100,26 @@ internal class CommandListAdditions : IDisposable
     }
     Dictionary<Animator,Dictionary<string,string>> frametimes = new();
     internal string GetFrameTime(string name){
+        try{
         if(!frametimes[previewAnimator].ContainsKey(name)){
             previewAnimator.Play(name,0,0.5f);
             previewAnimator.EvaluateController(.01f);
 
             AnimationClip clip = previewAnimator.GetCurrentAnimatorClipInfo(0)[0].clip;
-            
-
             frametimes[previewAnimator].Add(name,$"{Mathf.CeilToInt(clip.length*clip.frameRate)} Frames");
+            
         }
         return frametimes[previewAnimator][name];
+        }
+        catch(Exception e){
+            Plugin.Logging.LogError(e);
+        }
+        return "";
     }
     internal void Initialize(CommandListGUI commandList)
     {
         Plugin.Logging.LogInfo("Command List Initialized");
         GUIInstance = commandList;
-
     }
     
     public void Dispose()

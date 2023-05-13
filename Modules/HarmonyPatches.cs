@@ -1,14 +1,11 @@
 using System;
-using BepInEx;
 using HarmonyLib;
 using System.Reflection;
-using System.Collections.Generic;
 using UnityEngine;
 
 using IdolShowdown;
 using IdolShowdown.Managers;
 using IdolShowdown.UI.CommandList;
-using IdolShowdown.UI;
 
 namespace IdolShowdownTrainingPlusPlus.Modules;
 
@@ -54,8 +51,7 @@ internal class HarmonyPatches : IDisposable
         TryPatch(typeof(CommandListGUI).GetMethod("UpdateSpriteAnimator"), null, GetPatch(nameof(OnCommandListUpdateSpriteAnimator)));
 
         TryPatch(typeof(BoxDrawer).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance), GetPatch(nameof(OnBoxDrawerAwake)));
-
-
+        
         Plugin.Logging.LogInfo("Loaded Harmony Patches");
     }
 
@@ -67,6 +63,7 @@ internal class HarmonyPatches : IDisposable
     }
     private static void OnCommandListInitialized(CommandListGUI __instance, MoveList listOfMoves) { Plugin.GetModule<CommandListAdditions>().Initialize(__instance); }
     private static void OnCommandListUpdateSpriteAnimator() { Plugin.GetModule<CommandListAdditions>().OnUpdateAnimator(); }
+    static Sprite flat = Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,Texture2D.whiteTexture.width,Texture2D.whiteTexture.height),Vector2.one/2);
     internal static bool OnBoxDrawerAwake(BoxDrawer __instance)
     {
         if (!Plugin.ShouldDrawGizmos) return true;
@@ -74,6 +71,8 @@ internal class HarmonyPatches : IDisposable
         GameObject g = __instance.gameObject;
         GameObject.Destroy(__instance);
         var sr = g.GetComponent<SpriteRenderer>();
+        if(Plugin.UseFlatTexture)
+            sr.sprite = flat;
         var bc = g.GetComponentInParent<BoxCollider2D>();
         sr.size = bc != null ? bc.size : Vector2.zero;
         sr.enabled = true;
