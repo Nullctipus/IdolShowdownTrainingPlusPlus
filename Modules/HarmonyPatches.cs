@@ -89,8 +89,8 @@ internal class HarmonyPatches : IDisposable
     
     private static bool OnReadInputOnline(IdolShowdown.Match.IdolMatch __instance,ulong[] ___lastInputs){
         if(!Plugin.IsTraining || !ReplayEditor.Enabled) return true;
-        ___lastInputs[0] = ReplayEditor.CurrentInput;
-		___lastInputs[1] = __instance.charPlayerInput[__instance.player2CharacterIndex].ReadInput();
+        ___lastInputs[ReplayEditor.PlayRight ? 1 : 0] = ReplayEditor.CurrentInput;
+		___lastInputs[ReplayEditor.PlayRight ? 0 : 1] = __instance.charPlayerInput[ReplayEditor.PlayRight ? __instance.player1CharacterIndex : __instance.player2CharacterIndex].ReadInput();
 		__instance.charPlayerInput[__instance.player1CharacterIndex].ParseInput(___lastInputs[0]);
 		if (GlobalManager.Instance.GameManager.GetGameMode() != GameMode.tutorial)
 		{

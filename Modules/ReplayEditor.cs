@@ -170,6 +170,7 @@ internal class ReplayEditor : IDisposable
         Enabled = true;
     }
     static IEnumerator<ulong> Inputs;
+    internal static bool Loop;
     internal static ulong CurrentInput // Reading Moves to next input
     {
         get
@@ -177,14 +178,20 @@ internal class ReplayEditor : IDisposable
             var val = Inputs.Current;
             Log(val.ToString());
             if (!Inputs.MoveNext()){
+                if(Loop){
+                    Inputs.Reset();
+                }
+                else{
                 Enabled = false;
                 Inputs.Dispose(); // Clean up after use
+                }
             }
             return val;
         }
     }
     internal static bool Enabled;
     static bool _Editing = false;
+    internal static bool PlayRight;
     internal static bool Editing{
         get{
             return _Editing;
@@ -259,8 +266,15 @@ internal class ReplayEditor : IDisposable
             System.Diagnostics.Process.Start(PATH);
         }
 
-        if (GUILayout.Button("Run"))
+        if (GUILayout.Button("Run Left"))
         {
+            PlayRight = false;
+            StartPlayback(GetInputs(data));
+        }
+
+        if (GUILayout.Button("Run Right"))
+        {
+            PlayRight = true;
             StartPlayback(GetInputs(data));
         }
         GUILayout.EndHorizontal();
@@ -279,7 +293,7 @@ internal class ReplayEditor : IDisposable
         GUI.EndScrollView();
         GUI.Box(new Rect(windowRect.width/10f+20, 60, windowRect.width*0.9f-30, windowRect.height - 420), "Script Editor");
         TextEditorScroll = GUI.BeginScrollView(new Rect(windowRect.width/10f+20, 60, windowRect.width*0.9f-30, windowRect.height - 420), TextEditorScroll, new Rect(0, 0, windowRect.width*0.9f-40, (dataLines+1) * 15), false, false, GUIStyle.none, GUI.skin.verticalScrollbar);
-            
+            Loop = GUI.Toggle(new Rect(windowRect.width*0.9f-140,5,110,20),Loop,"Loop");
             GUI.changed = false;
             data = GUI.TextArea(new Rect(5, 25, windowRect.width*0.9f-40, (dataLines+1) * 15),data);
             if(GUI.changed){
