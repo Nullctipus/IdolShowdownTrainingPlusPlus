@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace IdolShowdownTrainingPlusPlus.Modules;
 
-internal class ReplayEditor : IDisposable
+internal class ReplayEditor : IDisposable, IHarmony
 {
     public static ulong GetInputMask(string line)
     {
@@ -337,5 +337,23 @@ internal class ReplayEditor : IDisposable
         data = string.Empty;
         if(Inputs != null)
             Inputs.Dispose();
+    }
+
+
+    public void Patch(HarmonyLib.Harmony harmony){
+        //public void ReadInputOnline(ulong[] inputs)
+        Plugin.TryPatch(typeof(IdolShowdown.Match.IdolMatch).GetMethod("ReadInput"),
+            new HarmonyLib.HarmonyMethod(GetType().GetMethod(nameof(OnReadInputOnline),System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)));
+    }
+    private static bool OnReadInputOnline(IdolShowdown.Match.IdolMatch __instance,ulong[] ___lastInputs){
+        if(!Plugin.IsTraining || !ReplayEditor.Enabled) return true;
+        ___lastInputs[ReplayEditor.PlayRight ? 1 : 0] = ReplayEditor.CurrentInput;
+		___lastInputs[ReplayEditor.PlayRight ? 0 : 1] = __instance.charPlayerInput[ReplayEditor.PlayRight ? __instance.player1CharacterIndex : __instance.player2CharacterIndex].ReadInput();
+		__instance.charPlayerInput[__instance.player1CharacterIndex].ParseInput(___lastInputs[0]);
+		if (IdolShowdown.Managers.GlobalManager.Instance.GameManager.GetGameMode() != IdolShowdown.Managers.GameMode.tutorial)
+		{
+			__instance.charPlayerInput[__instance.player2CharacterIndex].ParseInput(___lastInputs[1]);
+		}
+        return false;
     }
 }

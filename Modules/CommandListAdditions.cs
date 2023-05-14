@@ -7,11 +7,13 @@ using IdolShowdown.UI.CommandList;
 using TMPro;
 
 using Type=System.Type;
+using HarmonyLib;
 
 namespace IdolShowdownTrainingPlusPlus.Modules;
 
-internal class CommandListAdditions : IDisposable
+internal class CommandListAdditions : IDisposable, IHarmony
 {
+    static CommandListAdditions instance;
     #region ExposeFields
     public void SetupFieldInfo()
     {
@@ -70,11 +72,12 @@ internal class CommandListAdditions : IDisposable
 
     
     #endregion
-    CommandListGUI GUIInstance;
+    static CommandListGUI GUIInstance;
     public CommandListAdditions()
     {
         Plugin.Logging.LogInfo("Loading CommandListAdditions");
         SetupFieldInfo();
+        instance = this;
     }
     internal void OnUpdateAnimator(){
         if(previewAnimator == null) return;
@@ -116,7 +119,7 @@ internal class CommandListAdditions : IDisposable
         }
         return "";
     }
-    internal void Initialize(CommandListGUI commandList)
+    internal static void Initialize(CommandListGUI commandList)
     {
         Plugin.Logging.LogInfo("Command List Initialized");
         GUIInstance = commandList;
@@ -130,4 +133,19 @@ internal class CommandListAdditions : IDisposable
         frametimes = new();
         
     }
+
+
+    public void Patch(Harmony harmony)
+    {
+        System.Type thisType = GetType();
+        //public void InitializeGUI(MoveList listOfMoves)
+        Plugin.TryPatch(typeof(CommandListGUI).GetMethod("InitializeGUI"), null,
+            new HarmonyMethod(thisType.GetMethod(nameof(OnCommandListInitialized),BindingFlags.NonPublic|BindingFlags.Static)));
+
+        //public void UpdateSpriteAnimator()
+        Plugin.TryPatch(typeof(CommandListGUI).GetMethod("UpdateSpriteAnimator"), null,
+            new HarmonyMethod(thisType.GetMethod(nameof(OnCommandListUpdateSpriteAnimator),BindingFlags.NonPublic|BindingFlags.Static)));
+    }
+    private static void OnCommandListInitialized(CommandListGUI __instance, MoveList listOfMoves) { Initialize(__instance); }
+    private static void OnCommandListUpdateSpriteAnimator() { instance.OnUpdateAnimator(); }
 }
