@@ -3,7 +3,7 @@
 ## Usage
 Open the menu and enable the recording editor
 
-type the code in the Text Editor section
+type the code in the Text Editor section or open the file in your favorite text editor and save it 
 
 click run
 

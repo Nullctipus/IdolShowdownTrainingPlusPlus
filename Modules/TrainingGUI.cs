@@ -42,10 +42,6 @@ internal class TrainingGUI : IDisposable
     static bool FrameWalkDropdown = false;
     static bool KeybindsDropdown = false;
     static FrameWalk frameWalk;
-    static bool ChangingFrameToggle;
-    static bool ChangingFrameStep;
-    static bool ChangingMenuToggle;
-    static Dictionary<string,bool> ChangingKey;
     static string SelectedKey;
     Vector2 scroll = Vector2.zero;
     void DrawWindow(int id)
@@ -85,7 +81,7 @@ internal class TrainingGUI : IDisposable
         }
         if (GUILayout.Button("Toggle Keybind Options"))
             KeybindsDropdown ^= true;
-        if (KeybindsDropdown) //TODO: Should Prolly make this more extensive
+        if (KeybindsDropdown)
         {
             foreach(var k in KeybindHelper.Keys){
                 if (GUILayout.Button(SelectedKey == k.Key ? "Press any key" : $"Change {k.Key} Key: "+ k.Value))

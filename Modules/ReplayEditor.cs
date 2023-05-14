@@ -234,6 +234,28 @@ internal class ReplayEditor : IDisposable, IHarmony
         Plugin.drawGUI += OnGUI;
         Directory.CreateDirectory(PATH);
         LoadFiles();
+        UpdateWatcher();
+
+        KeybindHelper.RegisterKeybind("Replay Left",KeyCode.F5,(down)=>{
+            if(down)
+            {
+                PlayRight = false;
+                StartPlayback(GetInputs(data));
+            }
+        });
+        KeybindHelper.RegisterKeybind("Replay Right",KeyCode.F6,(down)=>{
+            if(down)
+            {
+                PlayRight = true;
+                StartPlayback(GetInputs(data));
+            }
+        });
+        KeybindHelper.RegisterKeybind("Mirror Replay",KeyCode.F3,(down)=>{
+            MirrorInput ^= down;
+        });
+        KeybindHelper.RegisterKeybind("Replay Loop",0,(down)=>{
+            Loop ^=down;
+        });
     }
     int windowid = (PluginInfo.PLUGIN_GUID + nameof(ReplayEditor)).GetHashCode();
     static Rect windowRect = new(350, 50, Screen.width-450, Screen.height-100);
@@ -256,7 +278,37 @@ internal class ReplayEditor : IDisposable, IHarmony
         FileName = name;
         data = File.ReadAllText(Path.Combine(PATH, name));
         dataLines = data.Split('\n').Length;
+            
     }
+    void UpdateWatcher(){
+        if(fileSystemWatcher != null)fileSystemWatcher.Dispose();
+
+        fileSystemWatcher = new(PATH);
+        fileSystemWatcher.NotifyFilter = NotifyFilters.Attributes
+                                 | NotifyFilters.CreationTime
+                                 | NotifyFilters.DirectoryName
+                                 | NotifyFilters.FileName
+                                 | NotifyFilters.LastAccess
+                                 | NotifyFilters.LastWrite
+                                 | NotifyFilters.Security
+                                 | NotifyFilters.Size;
+        FileSystemEventHandler onAnything = (object sender, FileSystemEventArgs e)=>{
+            Plugin.Logging.LogInfo(e.FullPath.EndsWith(FileName));
+            if (e.ChangeType == WatcherChangeTypes.Changed && e.FullPath.EndsWith(FileName))
+                LoadFile(FileName);
+            else
+                LoadFiles();
+        };
+        fileSystemWatcher.Changed+= onAnything;
+        fileSystemWatcher.Created+= onAnything;
+        fileSystemWatcher.Deleted+= onAnything;
+        fileSystemWatcher.Filter = "*";
+        fileSystemWatcher.IncludeSubdirectories = false;
+        fileSystemWatcher.EnableRaisingEvents =true;
+
+    }
+
+    FileSystemWatcher fileSystemWatcher;
     static string PATH = Path.Combine(Application.streamingAssetsPath, "../..", "Replays");
     Vector2 TextEditorScroll = Vector2.zero;
     Vector2 FileBrowserScroll = Vector2.zero;
@@ -341,11 +393,11 @@ internal class ReplayEditor : IDisposable, IHarmony
 
 
     public void Patch(HarmonyLib.Harmony harmony){
-        //public void ReadInputOnline(ulong[] inputs)
+        //public void ReadInput()
         Plugin.TryPatch(typeof(IdolShowdown.Match.IdolMatch).GetMethod("ReadInput"),
-            new HarmonyLib.HarmonyMethod(GetType().GetMethod(nameof(OnReadInputOnline),System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)));
+            new HarmonyLib.HarmonyMethod(GetType().GetMethod(nameof(OnReadInput),System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)));
     }
-    private static bool OnReadInputOnline(IdolShowdown.Match.IdolMatch __instance,ulong[] ___lastInputs){
+    private static bool OnReadInput(IdolShowdown.Match.IdolMatch __instance,ulong[] ___lastInputs){
         if(!Plugin.IsTraining || !ReplayEditor.Enabled) return true;
         ___lastInputs[ReplayEditor.PlayRight ? 1 : 0] = ReplayEditor.CurrentInput;
 		___lastInputs[ReplayEditor.PlayRight ? 0 : 1] = __instance.charPlayerInput[ReplayEditor.PlayRight ? __instance.player1CharacterIndex : __instance.player2CharacterIndex].ReadInput();
