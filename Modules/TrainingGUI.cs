@@ -33,13 +33,13 @@ internal class TrainingGUI : IDisposable
         }
     }
 
-    int windowid = PluginInfo.PLUGIN_GUID.GetHashCode();
+    int windowid = (PluginInfo.PLUGIN_GUID+nameof(TrainingGUI)).GetHashCode();
     Rect windowRect = new(10, 10, 300, 800);
     static bool ShouldDraw = false;
     public void OnGUI()
     {
         if (ShouldDraw)
-            GUI.Window(windowid, windowRect, DrawWindow, "Training++");
+            windowRect = GUI.Window(windowid, windowRect, DrawWindow, "Training++");
     }
     static bool RenderDropdown = false;
     static bool FrameWalkDropdown = false;
@@ -52,6 +52,7 @@ internal class TrainingGUI : IDisposable
     void DrawWindow(int id)
     {
         Plugin.UseFlatTexture = GUILayout.Toggle(Plugin.UseFlatTexture, "Flat Box Texture");
+        ReplayEditor.Editing = GUILayout.Toggle(ReplayEditor.Editing , "Open Recording Editor");
         if (GUILayout.Button("Toggle Frame Walk Options"))
             FrameWalkDropdown ^= true;
         if (FrameWalkDropdown)

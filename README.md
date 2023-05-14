@@ -6,6 +6,7 @@
 - Display hit and hurt boxes in training mode
 - Render character animations with hit and hurt boxes to pngs 
 - Step Frames
+- Replay Editor (very basic atm)
 
 ## Installation
 Install [Bepinex5](https://github.com/BepInEx/BepInEx)
@@ -20,6 +21,8 @@ F8: Toggle Menu
 F9: Toggle Frame Walk
 
 f10: Step One Frame
+
+[Replay Editor](https://github.com/Nullctipus/IdolShowdownTrainingPlusPlus/blob/bepinex5/ReplayEditor.md)
 
 ## Issues
 - Projectiles do not render

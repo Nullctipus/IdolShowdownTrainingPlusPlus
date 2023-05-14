@@ -51,6 +51,9 @@ internal class HarmonyPatches : IDisposable
         TryPatch(typeof(CommandListGUI).GetMethod("UpdateSpriteAnimator"), null, GetPatch(nameof(OnCommandListUpdateSpriteAnimator)));
 
         TryPatch(typeof(BoxDrawer).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance), GetPatch(nameof(OnBoxDrawerAwake)));
+
+        //public void ReadInputOnline(ulong[] inputs)
+        TryPatch(typeof(IdolShowdown.Match.IdolMatch).GetMethod("ReadInput"),GetPatch(nameof(OnReadInputOnline)));
         
         Plugin.Logging.LogInfo("Loaded Harmony Patches");
     }
@@ -81,6 +84,18 @@ internal class HarmonyPatches : IDisposable
         catch(Exception e){
             Plugin.Logging.LogError(e);
         }
+        return false;
+    }
+    
+    private static bool OnReadInputOnline(IdolShowdown.Match.IdolMatch __instance,ulong[] ___lastInputs){
+        if(!Plugin.IsTraining || !ReplayEditor.Enabled) return true;
+        ___lastInputs[0] = ReplayEditor.CurrentInput;
+		___lastInputs[1] = __instance.charPlayerInput[__instance.player2CharacterIndex].ReadInput();
+		__instance.charPlayerInput[__instance.player1CharacterIndex].ParseInput(___lastInputs[0]);
+		if (GlobalManager.Instance.GameManager.GetGameMode() != GameMode.tutorial)
+		{
+			__instance.charPlayerInput[__instance.player2CharacterIndex].ParseInput(___lastInputs[1]);
+		}
         return false;
     }
     #endregion

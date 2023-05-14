@@ -9,6 +9,7 @@ internal class FrameWalk : IDisposable
 {
     public FrameWalk()
     {
+        Plugin.Logging.LogInfo("Loading Framewalk");
         Plugin.OnUpdate += OnUpdate;
     }
     private void OnUpdate() {
