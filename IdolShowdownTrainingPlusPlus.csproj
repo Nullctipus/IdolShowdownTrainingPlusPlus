@@ -27,5 +27,8 @@
   <Reference Include="Unity.TextMeshPro">
     <HintPath>$(ManagedLocation)/Unity.TextMeshPro.dll</HintPath>
   </Reference>
+  <Reference Include="Newtonsoft.Json">
+    <HintPath>$(ManagedLocation)/Newtonsoft.Json.dll</HintPath>
+  </Reference>
 </ItemGroup>
 </Project>

@@ -31,45 +31,45 @@ public class Plugin : MonoBehaviour
     {
         Instance = this;
         //Find All Modules
-        // +< is for enumerator types
         IEnumerable<Type> LoadableTypes = typeof(Plugin).Assembly.GetTypes().Where(x => !x.IsAbstract && typeof(IDisposable).IsAssignableFrom(x) && x.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, new Type[0], null) != null);
 
-        
-        foreach (var t in LoadableTypes){
-            try{
-            Disposables.Add(t, (IDisposable)Activator.CreateInstance(t));
+
+        foreach (var t in LoadableTypes)
+        {
+            try
+            {
+                Disposables.Add(t, (IDisposable)Activator.CreateInstance(t));
             }
-            catch(Exception e){
-            Logging.LogError(e);
+            catch (Exception e)
+            {
+                Logging.LogError(e);
+            }
         }
-        }
-        
+
 
 
         harmony = new(GUID);
 
 
         Plugin.Logging.LogInfo("Loading Harmony Patches");
-        foreach(var m in Plugin.Disposables){
-            if(m.Value is IHarmony HarmonyModule)
+        foreach (var m in Plugin.Disposables)
+        {
+            if (m.Value is IHarmony HarmonyModule)
                 HarmonyModule.Patch(harmony);
 
         }
         Plugin.Logging.LogInfo("Loaded Harmony Patches");
 
     }
-    private void OnDisable() {
-        enabled =true;
+    private void OnDisable()
+    {
+        enabled = true;
     }
     internal static BepInEx.Logging.ManualLogSource Logging => BepInEx.Logging.Logger.CreateLogSource(NAME);
     internal static bool IsTraining;
     public static bool ShouldDrawGizmos => IsTraining;
     internal static bool UseFlatTexture = true;
     internal static Dictionary<Type, IDisposable> Disposables = new();
-
-    internal static KeyCode ToggleFrameWalk = KeyCode.F9;
-    internal static KeyCode ToggleMenu = KeyCode.F8;
-    internal static KeyCode StepFrame = KeyCode.F10;
 
 
     public static event Action drawGUI;

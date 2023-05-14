@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using UnityEngine;
 namespace IdolShowdownTrainingPlusPlus.Modules;
@@ -7,14 +8,10 @@ internal class TrainingGUI : IDisposable
     {
         Plugin.Logging.LogInfo("Loading GUI");
         Plugin.drawGUI += OnGUI;
-        Plugin.OnUpdate += OnUpdate;
-    }
-    public void OnUpdate()
-    {
-        if (UnityEngine.Input.GetKeyDown(Plugin.ToggleMenu))
-            ShouldDraw ^= true; // toggle
 
-
+        KeybindHelper.RegisterKeybind("Toggle Menu",KeyCode.F8,(down)=>{
+            ShouldDraw ^= down; // toggle if true
+        });
     }
     IdolShowdown.Structs.Idol[] characters;
     IdolShowdown.Structs.Idol[] Characters
@@ -48,7 +45,8 @@ internal class TrainingGUI : IDisposable
     static bool ChangingFrameToggle;
     static bool ChangingFrameStep;
     static bool ChangingMenuToggle;
-
+    static Dictionary<string,bool> ChangingKey;
+    static string SelectedKey;
     void DrawWindow(int id)
     {
         Plugin.UseFlatTexture = GUILayout.Toggle(Plugin.UseFlatTexture, "Flat Box Texture");
@@ -85,34 +83,17 @@ internal class TrainingGUI : IDisposable
         }
         if (GUILayout.Button("Toggle Keybind Options"))
             KeybindsDropdown ^= true;
-        if (KeybindsDropdown)
+        if (KeybindsDropdown) //TODO: Should Prolly make this more extensive
         {
-            if (GUILayout.Button(ChangingMenuToggle ? "Press any key" : "Change Menu Toggle Key: "+ Plugin.ToggleMenu))
-            {
-                ChangingMenuToggle = true;
+            foreach(var k in KeybindHelper.Keys){
+                if (GUILayout.Button(SelectedKey == k.Key ? "Press any key" : $"Change {k.Key} Key: "+ k.Value))
+                {
+                    SelectedKey = k.Key;
+                }
             }
-            if (GUILayout.Button(ChangingFrameToggle ? "Press any key" : "Change Frame Walk Toggle Key: "+Plugin.ToggleFrameWalk))
-            {
-                ChangingFrameToggle = true;
-            }
-            if (GUILayout.Button(ChangingFrameStep ? "Press any key" : "Change Frame Step Key: "+Plugin.StepFrame))
-            {
-                ChangingFrameStep = true;
-            }
-            if (ChangingMenuToggle && Input.anyKey)
-            {
-                Plugin.ToggleMenu = FetchKey();
-                ChangingMenuToggle = false;
-            }
-            if (ChangingFrameToggle && Input.anyKey)
-            {
-                Plugin.ToggleFrameWalk = FetchKey();
-                ChangingFrameToggle = false;
-            }
-            if (ChangingFrameStep && Input.anyKey)
-            {
-                Plugin.StepFrame = FetchKey();
-                ChangingFrameStep = false;
+            if(!string.IsNullOrEmpty(SelectedKey) && Input.anyKey){
+                KeybindHelper.SetBind(SelectedKey,FetchKey());
+                SelectedKey = string.Empty;
             }
         }
 
@@ -121,7 +102,6 @@ internal class TrainingGUI : IDisposable
     public void Dispose()
     {
         Plugin.drawGUI -= OnGUI;
-        Plugin.OnUpdate -= OnUpdate;
     }
     KeyCode FetchKey()
     {

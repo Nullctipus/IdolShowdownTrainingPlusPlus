@@ -10,13 +10,14 @@ internal class FrameWalk : IDisposable
     public FrameWalk()
     {
         Plugin.Logging.LogInfo("Loading Framewalk");
-        Plugin.OnUpdate += OnUpdate;
-    }
-    private void OnUpdate() {
-        if(Input.GetKeyDown(Plugin.ToggleFrameWalk))
-            Enabled ^=true;
-        if(Enabled && Input.GetKeyDown(Plugin.StepFrame))
-            Step();
+        
+        KeybindHelper.RegisterKeybind("Toggle Frame Walk",KeyCode.F9,(down)=>{
+            Enabled ^=down; // toggle if true
+        });
+        KeybindHelper.RegisterKeybind("Step Frame",KeyCode.F10,(down)=>{
+            if(Enabled && down)
+                Step();
+        });
     }
     bool _enabled;
     public bool Enabled
@@ -46,6 +47,5 @@ internal class FrameWalk : IDisposable
     }
     public void Dispose()
     {
-        Plugin.OnUpdate -= OnUpdate;
     }
 }
