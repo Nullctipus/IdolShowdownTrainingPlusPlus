@@ -1,3 +1,4 @@
+using System.Reflection;
 // I could properly edit the demo files directly, but thats above my skill level; so, I am writing my own system and player that can persist updates
 using System;
 using System.IO;
@@ -194,11 +195,16 @@ internal class ReplayEditor : IDisposable, IHarmony
     }
     static IEnumerator<ulong> Inputs;
     internal static bool Loop;
+    static FieldInfo demoRecorder;
     internal static ulong CurrentInput // Reading Moves to next input
     {
         get
         {
             var val = Inputs.Current;
+            if(IdolShowdown.Managers.GlobalManager.Instance.TrainingManager.WaitForInputToRecordDemo){
+                IdolShowdown.Managers.GlobalManager.Instance.TrainingManager.WaitForInputToRecordDemo = false;
+                (demoRecorder.GetValue(IdolShowdown.Managers.GlobalManager.Instance.TrainingManager) as IdolShowdown.DemoRecorder).StartRecording();
+            }
             Log(val.ToString());
             if (!Inputs.MoveNext()){
                 if(Loop){
@@ -256,6 +262,12 @@ internal class ReplayEditor : IDisposable, IHarmony
         KeybindHelper.RegisterKeybind("Replay Loop",0,(down)=>{
             Loop ^=down;
         });
+
+        KeybindHelper.RegisterKeybind("Toggle Replay Window",0,(down)=>{
+            Editing ^=down;
+        });
+
+        demoRecorder = typeof(IdolShowdown.Managers.TrainingManager).GetField("demoRecorder",BindingFlags.NonPublic|BindingFlags.Instance);
     }
     int windowid = (PluginInfo.PLUGIN_GUID + nameof(ReplayEditor)).GetHashCode();
     static Rect windowRect = new(350, 50, Screen.width-450, Screen.height-100);
