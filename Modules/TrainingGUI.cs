@@ -47,8 +47,10 @@ internal class TrainingGUI : IDisposable
     static bool ChangingMenuToggle;
     static Dictionary<string,bool> ChangingKey;
     static string SelectedKey;
+    Vector2 scroll = Vector2.zero;
     void DrawWindow(int id)
     {
+        scroll = GUILayout.BeginScrollView(scroll);
         Plugin.UseFlatTexture = GUILayout.Toggle(Plugin.UseFlatTexture, "Flat Box Texture");
         ReplayEditor.Editing = GUILayout.Toggle(ReplayEditor.Editing , "Open Recording Editor");
         if (GUILayout.Button("Toggle Frame Walk Options"))
@@ -96,7 +98,7 @@ internal class TrainingGUI : IDisposable
                 SelectedKey = string.Empty;
             }
         }
-
+        GUILayout.EndScrollView();
         GUI.DragWindow();
     }
     public void Dispose()
