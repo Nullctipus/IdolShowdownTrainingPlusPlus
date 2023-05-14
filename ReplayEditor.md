@@ -24,6 +24,8 @@ The game processes input with up, down, left, right. This means that inputting 2
 
 The way that inputs are read is a bitmask, so ll is the same as no l at all. This applys to all inputs
 
+Because 5 is the same as no input `,1` is functionaly the same as `5,1`
+
 ## Examples
 
 Botan basic combo
@@ -62,4 +64,14 @@ h,1
 lm,1
 lh,1
 mlh,1
+```
+
+Quirk Example
+
+```
+41,1, same as 2
+42,1, same as 1
+78,1, same as 4
+lmhml,1, same as h
+,1,This is just a normal QCB input
 ```

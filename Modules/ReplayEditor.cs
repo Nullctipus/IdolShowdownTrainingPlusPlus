@@ -19,40 +19,40 @@ internal class ReplayEditor : IDisposable
             switch (c)
             {
                 case '1':
-                    num |= 36;
+                    num ^= 36;
                     break;
                 case '2':
-                    num |= 32;
+                    num ^= 32;
                     break;
                 case '3':
-                    num |= 40;
+                    num ^= 40;
                     break;
                 case '4':
-                    num |= 4;
+                    num ^= 4;
                     break;
                 case '6':
-                    num |= 8;
+                    num ^= 8;
                     break;
                 case '7':
-                    num |= 20;
+                    num ^= 20;
                     break;
                 case '8':
-                    num |= 16;
+                    num ^= 16;
                     break;
                 case '9':
-                    num |= 24;
+                    num ^= 24;
                     break;
                 case 'l':
-                    num |= 64;
+                    num ^= 64;
                     break;
                 case 'm':
-                    num |= 128;
+                    num ^= 128;
                     break;
                 case 'h':
-                    num |= 256;
+                    num ^= 256;
                     break;
                 case 's':
-                    num |= 512;
+                    num ^= 512;
                     break;
             }
         }
