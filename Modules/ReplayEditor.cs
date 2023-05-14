@@ -11,6 +11,32 @@ namespace IdolShowdownTrainingPlusPlus.Modules;
 
 internal class ReplayEditor : IDisposable, IHarmony
 {
+    public static string FromInputMask(ulong input){
+        string ret = "";
+        if((input & 4) == 4)
+            ret+="4";
+        if((input & 32) == 32)
+            ret+="2";
+        if((input & 8) == 8)
+            ret+="6";
+        if((input & 16) == 16)
+            ret+="8";
+        if((input & 64) == 64)
+            ret+="l";
+        if((input & 128) == 128)
+            ret+="m";
+        if((input & 256) == 256)
+            ret+="h";
+        if((input & 512) == 512)
+            ret+="s";
+        if((input & 2048) == 2048)
+            ret+="lm";
+        if((input & 4096) == 4096)
+            ret+="lh";
+        if((input & 8192) == 8192)
+            ret+="lmh";
+        return ret;
+    }
     public static ulong GetInputMask(string line)
     {
         ulong num = 0uL;
@@ -276,10 +302,40 @@ internal class ReplayEditor : IDisposable, IHarmony
         if (Editing)
             windowRect = GUI.Window(windowid, windowRect, DrawWindow, "Replay Editor");
     }
+    public static void ExportDemoToFile(string to){
+        try{
+        IdolShowdown.DemoRecorder recorder = (IdolShowdown.DemoRecorder)demoRecorder.GetValue(IdolShowdown.Managers.GlobalManager.Instance.TrainingManager);
+        
+        //private frameData[] recordFrame;
+        var demoData = (IdolShowdown.DemoRecorder.frameData[]) typeof(IdolShowdown.DemoRecorder).GetField("recordFrame",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(recorder);
+
+        if(demoData == null) return;
+
+        string fileData = "";
+        int j = 1;
+        for(int i = 1; i< demoData.Length;i++){
+            ulong lastinput = demoData[i-1].player2Input;
+            ulong input = demoData[i].player2Input;
+            if(input == lastinput){
+                j++;
+            }
+            else{
+                fileData+=FromInputMask(lastinput)+","+j+"\n";
+                j=1;
+            }
+        }
+        File.WriteAllText(Path.Combine(PATH,to), fileData);
+        LoadFiles();
+        }
+        catch(Exception e){
+            Plugin.Logging.LogError(e);
+        }
+
+    }
     string data = "";
     int dataLines = 1;
     string FileName;
-    void LoadFiles()
+    static void LoadFiles()
     {
         files.Clear();
         DirectoryInfo dir = new(PATH);
@@ -327,7 +383,7 @@ internal class ReplayEditor : IDisposable, IHarmony
     static Vector2 ConsoleScroll = Vector2.zero;
     static string Console;
     static int ConsoleLines = 1;
-    List<string> files = new();
+    static List<string> files = new();
     static void Log(string text){
             Console += text+"\n";
             ++ConsoleLines;
@@ -352,6 +408,11 @@ internal class ReplayEditor : IDisposable, IHarmony
         if (GUILayout.Button("Open Folder"))
         {
             System.Diagnostics.Process.Start(PATH);
+        }
+
+        if (GUILayout.Button("Export Demo"))
+        {
+            ExportDemoToFile("exported");
         }
 
         if (GUILayout.Button("Run Left"))
