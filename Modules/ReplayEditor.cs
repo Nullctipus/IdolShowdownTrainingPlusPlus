@@ -379,8 +379,6 @@ internal class ReplayEditor : IDisposable, IHarmony
     private static void BlockStunOver(IdolShowdown.FighterAttackable __instance, int ___framesOfBlockStunWearingOff)
     {
         if(!Plugin.IsTraining || !PlayAfterBlock || ___framesOfBlockStunWearingOff != 1 || IdolShowdown.Managers.GlobalManager.Instance.MatchRunner.CurrentMatch.frameNumber == 1) return;
-
-        Plugin.Logging.LogInfo(___framesOfBlockStunWearingOff);
             PlayRight = __instance.name == "player2";
             StartPlayback(GetInputs(data));
     }
