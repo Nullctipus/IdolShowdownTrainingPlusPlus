@@ -11,6 +11,7 @@ namespace IdolShowdownTrainingPlusPlus.Modules;
 
 internal class ReplayEditor : IDisposable, IHarmony
 {
+    #region Converter
     public static string FromInputMask(ulong input){
         string ret = "";
         if((input & 4) == 4)
@@ -220,34 +221,11 @@ internal class ReplayEditor : IDisposable, IHarmony
         Enabled = true;
     }
     static IEnumerator<ulong> Inputs;
-    internal static bool Loop;
-    static FieldInfo demoRecorder;
-    internal static ulong CurrentInput // Reading Moves to next input
-    {
-        get
-        {
-            var val = Inputs.Current;
-            if(IdolShowdown.Managers.GlobalManager.Instance.TrainingManager.WaitForInputToRecordDemo){
-                IdolShowdown.Managers.GlobalManager.Instance.TrainingManager.WaitForInputToRecordDemo = false;
-                (demoRecorder.GetValue(IdolShowdown.Managers.GlobalManager.Instance.TrainingManager) as IdolShowdown.DemoRecorder).StartRecording();
-            }
-            Log(val.ToString());
-            if (!Inputs.MoveNext()){
-                if(Loop){
-                    Inputs.Reset();
-                }
-                else{
-                Enabled = false;
-                Inputs.Dispose(); // Clean up after use
-                }
-            }
-            return val;
-        }
-    }
-    internal static bool Enabled;
+    #endregion
+    
+    #region GUI
+    static string data = "";
     static bool _Editing = false;
-    internal static bool PlayRight;
-    internal static bool MirrorInput;
     internal static bool Editing{
         get{
             return _Editing;
@@ -259,80 +237,6 @@ internal class ReplayEditor : IDisposable, IHarmony
             _Editing = value;
         }
     }
-
-    public ReplayEditor()
-    {
-        Plugin.Logging.LogInfo("Loading Replay Editor");
-        Plugin.drawGUI += OnGUI;
-        Directory.CreateDirectory(PATH);
-        LoadFiles();
-        UpdateWatcher();
-
-        KeybindHelper.RegisterKeybind("Replay Left",KeyCode.F5,(down)=>{
-            if(down)
-            {
-                PlayRight = false;
-                StartPlayback(GetInputs(data));
-            }
-        });
-        KeybindHelper.RegisterKeybind("Replay Right",KeyCode.F6,(down)=>{
-            if(down)
-            {
-                PlayRight = true;
-                StartPlayback(GetInputs(data));
-            }
-        });
-        KeybindHelper.RegisterKeybind("Mirror Replay",KeyCode.F3,(down)=>{
-            MirrorInput ^= down;
-        });
-        KeybindHelper.RegisterKeybind("Replay Loop",0,(down)=>{
-            Loop ^=down;
-        });
-
-        KeybindHelper.RegisterKeybind("Toggle Replay Window",0,(down)=>{
-            Editing ^=down;
-        });
-
-        demoRecorder = typeof(IdolShowdown.Managers.TrainingManager).GetField("demoRecorder",BindingFlags.NonPublic|BindingFlags.Instance);
-    }
-    int windowid = (PluginInfo.PLUGIN_GUID + nameof(ReplayEditor)).GetHashCode();
-    static Rect windowRect = new(350, 50, Screen.width-450, Screen.height-100);
-    private void OnGUI()
-    {
-        if (Editing)
-            windowRect = GUI.Window(windowid, windowRect, DrawWindow, "Replay Editor");
-    }
-    public static void ExportDemoToFile(string to){
-        try{
-        IdolShowdown.DemoRecorder recorder = (IdolShowdown.DemoRecorder)demoRecorder.GetValue(IdolShowdown.Managers.GlobalManager.Instance.TrainingManager);
-        
-        //private frameData[] recordFrame;
-        var demoData = (IdolShowdown.DemoRecorder.frameData[]) typeof(IdolShowdown.DemoRecorder).GetField("recordFrame",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(recorder);
-
-        if(demoData == null) return;
-
-        string fileData = "";
-        int j = 1;
-        for(int i = 1; i< demoData.Length;i++){
-            ulong lastinput = demoData[i-1].player2Input;
-            ulong input = demoData[i].player2Input;
-            if(input == lastinput){
-                j++;
-            }
-            else{
-                fileData+=FromInputMask(lastinput)+","+j+"\n";
-                j=1;
-            }
-        }
-        File.WriteAllText(Path.Combine(PATH,to), fileData);
-        LoadFiles();
-        }
-        catch(Exception e){
-            Plugin.Logging.LogError(e);
-        }
-
-    }
-    string data = "";
     int dataLines = 1;
     string FileName;
     static void LoadFiles()
@@ -361,7 +265,6 @@ internal class ReplayEditor : IDisposable, IHarmony
                                  | NotifyFilters.Security
                                  | NotifyFilters.Size;
         FileSystemEventHandler onAnything = (object sender, FileSystemEventArgs e)=>{
-            Plugin.Logging.LogInfo(e.FullPath.EndsWith(FileName));
             if (e.ChangeType == WatcherChangeTypes.Changed && e.FullPath.EndsWith(FileName))
                 LoadFile(FileName);
             else
@@ -384,10 +287,17 @@ internal class ReplayEditor : IDisposable, IHarmony
     static string Console;
     static int ConsoleLines = 1;
     static List<string> files = new();
+    int windowid = (PluginInfo.PLUGIN_GUID + nameof(ReplayEditor)).GetHashCode();
+    static Rect windowRect = new(350, 50, Screen.width-450, Screen.height-100);
     static void Log(string text){
             Console += text+"\n";
             ++ConsoleLines;
-            ConsoleScroll[1] = 1f;// Scroll to bottom
+    }
+    
+    private void OnGUI()
+    {
+        if (Editing)
+            windowRect = GUI.Window(windowid, windowRect, DrawWindow, "Replay Editor");
     }
     void DrawWindow(int idx)
     {
@@ -444,6 +354,7 @@ internal class ReplayEditor : IDisposable, IHarmony
         TextEditorScroll = GUI.BeginScrollView(new Rect(windowRect.width/10f+20, 60, windowRect.width*0.9f-30, windowRect.height - 420), TextEditorScroll, new Rect(0, 0, windowRect.width*0.9f-40, (dataLines+1) * 15), false, false, GUIStyle.none, GUI.skin.verticalScrollbar);
             Loop = GUI.Toggle(new Rect(windowRect.width*0.9f-140,5,110,20),Loop,"Loop");
             MirrorInput = GUI.Toggle(new Rect(windowRect.width*0.9f-250,5,110,20),MirrorInput,"Mirror");
+            PlayAfterBlock = GUI.Toggle(new Rect(windowRect.width*0.9f-360,5,110,20),PlayAfterBlock,"Play After Block");
             GUI.changed = false;
             data = GUI.TextArea(new Rect(5, 25, windowRect.width*0.9f-40, (dataLines+1) * 15),data);
             if(GUI.changed){
@@ -454,21 +365,24 @@ internal class ReplayEditor : IDisposable, IHarmony
         GUI.DragWindow();
 
     }
-    public void Dispose()
-    {
-        Enabled = false;
-        files = null;
-        Console = null;
-        data = string.Empty;
-        if(Inputs != null)
-            Inputs.Dispose();
-    }
-
-
+    #endregion
+    
+    #region Harmony
     public void Patch(HarmonyLib.Harmony harmony){
         //public void ReadInput()
         Plugin.TryPatch(typeof(IdolShowdown.Match.IdolMatch).GetMethod("ReadInput"),
-            new HarmonyLib.HarmonyMethod(GetType().GetMethod(nameof(OnReadInput),System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)));
+            new HarmonyLib.HarmonyMethod(GetType().GetMethod(nameof(OnReadInput),BindingFlags.Static|BindingFlags.NonPublic)));
+        //private void ReduceBlockStun()
+        Plugin.TryPatch(typeof(IdolShowdown.FighterAttackable).GetMethod("ReduceBlockStun",BindingFlags.Instance|BindingFlags.NonPublic),
+            new HarmonyLib.HarmonyMethod(GetType().GetMethod(nameof(BlockStunOver),BindingFlags.Static|BindingFlags.NonPublic)));
+    }
+    private static void BlockStunOver(IdolShowdown.FighterAttackable __instance, int ___framesOfBlockStunWearingOff)
+    {
+        if(!Plugin.IsTraining || !PlayAfterBlock || ___framesOfBlockStunWearingOff != 1 || IdolShowdown.Managers.GlobalManager.Instance.MatchRunner.CurrentMatch.frameNumber == 1) return;
+
+        Plugin.Logging.LogInfo(___framesOfBlockStunWearingOff);
+            PlayRight = __instance.name == "player2";
+            StartPlayback(GetInputs(data));
     }
     private static bool OnReadInput(IdolShowdown.Match.IdolMatch __instance,ulong[] ___lastInputs){
         if(!Plugin.IsTraining || !ReplayEditor.Enabled) return true;
@@ -480,5 +394,109 @@ internal class ReplayEditor : IDisposable, IHarmony
 			__instance.charPlayerInput[__instance.player2CharacterIndex].ParseInput(___lastInputs[1]);
 		}
         return false;
+    }
+    #endregion
+    static FieldInfo demoRecorder;
+    internal static ulong CurrentInput // Reading Moves to next input
+    {
+        get
+        {
+            var val = Inputs.Current;
+            if(IdolShowdown.Managers.GlobalManager.Instance.TrainingManager.WaitForInputToRecordDemo){
+                IdolShowdown.Managers.GlobalManager.Instance.TrainingManager.WaitForInputToRecordDemo = false;
+                (demoRecorder.GetValue(IdolShowdown.Managers.GlobalManager.Instance.TrainingManager) as IdolShowdown.DemoRecorder).StartRecording();
+            }
+            Log(val.ToString());
+            if (!Inputs.MoveNext()){
+                if(Loop){
+                    Inputs.Reset();
+                }
+                else{
+                Enabled = false;
+                Inputs.Dispose(); // Clean up after use
+                }
+            }
+            return val;
+        }
+    }
+    internal static bool Enabled;
+    internal static bool Loop;
+    internal static bool PlayRight;
+    internal static bool MirrorInput;
+    internal static bool PlayAfterBlock;
+
+    public ReplayEditor()
+    {
+        Plugin.Logging.LogInfo("Loading Replay Editor");
+        Plugin.drawGUI += OnGUI;
+        Directory.CreateDirectory(PATH);
+        LoadFiles();
+        UpdateWatcher();
+
+        KeybindHelper.RegisterKeybind("Replay Left",KeyCode.F5,(down)=>{
+            if(down)
+            {
+                PlayRight = false;
+                StartPlayback(GetInputs(data));
+            }
+        });
+        KeybindHelper.RegisterKeybind("Replay Right",KeyCode.F6,(down)=>{
+            if(down)
+            {
+                PlayRight = true;
+                StartPlayback(GetInputs(data));
+            }
+        });
+        KeybindHelper.RegisterKeybind("Mirror Replay",KeyCode.F3,(down)=>{
+            MirrorInput ^= down;
+        });
+        KeybindHelper.RegisterKeybind("Replay Loop",0,(down)=>{
+            Loop ^=down;
+        });
+
+        KeybindHelper.RegisterKeybind("Toggle Replay Window",0,(down)=>{
+            Editing ^=down;
+        });
+
+        demoRecorder = typeof(IdolShowdown.Managers.TrainingManager).GetField("demoRecorder",BindingFlags.NonPublic|BindingFlags.Instance);
+    }
+    public static void ExportDemoToFile(string to){
+        try{
+        IdolShowdown.DemoRecorder recorder = (IdolShowdown.DemoRecorder)demoRecorder.GetValue(IdolShowdown.Managers.GlobalManager.Instance.TrainingManager);
+        
+        //private frameData[] recordFrame;
+        var demoData = (IdolShowdown.DemoRecorder.frameData[]) typeof(IdolShowdown.DemoRecorder).GetField("recordFrame",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(recorder);
+
+        if(demoData == null) return;
+
+        string fileData = "";
+        int j = 1;
+        for(int i = 1; i< demoData.Length;i++){
+            ulong lastinput = demoData[i-1].player2Input;
+            ulong input = demoData[i].player2Input;
+            if(input == lastinput){
+                j++;
+            }
+            else{
+                fileData+=FromInputMask(lastinput)+","+j+"\n";
+                j=1;
+            }
+        }
+        File.WriteAllText(Path.Combine(PATH,to), fileData);
+        LoadFiles();
+        }
+        catch(Exception e){
+            Plugin.Logging.LogError(e);
+        }
+
+    }
+    public void Dispose()
+    {
+        Enabled = false;
+        files = null;
+        Console = null;
+        data = string.Empty;
+        if(Inputs != null)
+            Inputs.Dispose();
     }
 }
