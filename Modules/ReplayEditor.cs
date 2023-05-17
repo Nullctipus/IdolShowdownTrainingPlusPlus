@@ -324,16 +324,8 @@ internal class ReplayEditor : IDisposable, IHarmony
         {
             ExportDemoToFile("exported");
         }
-
-        if (GUILayout.Button("Run Left"))
+        if (GUILayout.Button("Run"))
         {
-            PlayRight = false;
-            StartPlayback(GetInputs(data));
-        }
-
-        if (GUILayout.Button("Run Right"))
-        {
-            PlayRight = true;
             StartPlayback(GetInputs(data));
         }
         GUILayout.EndHorizontal();
@@ -355,6 +347,8 @@ internal class ReplayEditor : IDisposable, IHarmony
             Loop = GUI.Toggle(new Rect(windowRect.width*0.9f-140,5,110,20),Loop,"Loop");
             MirrorInput = GUI.Toggle(new Rect(windowRect.width*0.9f-250,5,110,20),MirrorInput,"Mirror");
             PlayAfterBlock = GUI.Toggle(new Rect(windowRect.width*0.9f-360,5,110,20),PlayAfterBlock,"Play After Block");
+            PlayRight = GUI.Toggle(new Rect(windowRect.width*0.9f-470,5,110,20),PlayRight,"Play on Right");
+            TakeoverDemo = GUI.Toggle(new Rect(windowRect.width*0.9f-580,5,110,20),TakeoverDemo,"Takeover Demo");
             GUI.changed = false;
             data = GUI.TextArea(new Rect(5, 25, windowRect.width*0.9f-40, (dataLines+1) * 15),data);
             if(GUI.changed){
@@ -375,11 +369,22 @@ internal class ReplayEditor : IDisposable, IHarmony
         //private void ReduceBlockStun()
         Plugin.TryPatch(typeof(IdolShowdown.FighterAttackable).GetMethod("ReduceBlockStun",BindingFlags.Instance|BindingFlags.NonPublic),
             new HarmonyLib.HarmonyMethod(GetType().GetMethod(nameof(BlockStunOver),BindingFlags.Static|BindingFlags.NonPublic)));
+        //PlayDemo(bool flipPlayer2 = false)
+        Plugin.TryPatch(typeof(IdolShowdown.DemoRecorder).GetMethod("PlayDemo"),
+            new HarmonyLib.HarmonyMethod(GetType().GetMethod(nameof(PlayDemo),BindingFlags.Static|BindingFlags.NonPublic)));
+    }
+    private static bool PlayDemo(bool flipPlayer2)
+    {
+        if(!Plugin.IsTraining || !TakeoverDemo) return true;
+        MirrorInput = flipPlayer2;
+        PlayRight = true;
+        StartPlayback(GetInputs(data));
+
+        return false;
     }
     private static void BlockStunOver(IdolShowdown.FighterAttackable __instance, int ___framesOfBlockStunWearingOff)
     {
-        if(!Plugin.IsTraining || !PlayAfterBlock || ___framesOfBlockStunWearingOff != 1 || IdolShowdown.Managers.GlobalManager.Instance.MatchRunner.CurrentMatch.frameNumber == 1) return;
-            PlayRight = __instance.name == "player2";
+        if(!Plugin.IsTraining || !PlayAfterBlock || ___framesOfBlockStunWearingOff != 1 || IdolShowdown.Managers.GlobalManager.Instance.MatchRunner.CurrentMatch.frameNumber == 1 || (PlayRight && __instance.name != "player2")) return;
             StartPlayback(GetInputs(data));
     }
     private static bool OnReadInput(IdolShowdown.Match.IdolMatch __instance,ulong[] ___lastInputs){
@@ -422,6 +427,7 @@ internal class ReplayEditor : IDisposable, IHarmony
     internal static bool PlayRight;
     internal static bool MirrorInput;
     internal static bool PlayAfterBlock;
+    internal static bool TakeoverDemo;
 
     public ReplayEditor()
     {
@@ -457,6 +463,9 @@ internal class ReplayEditor : IDisposable, IHarmony
         });
         KeybindHelper.RegisterKeybind("Toggle Replay After Block",0,(down)=>{
             PlayAfterBlock ^=down;
+        });
+        KeybindHelper.RegisterKeybind("Toggle Takeover Demo Block",0,(down)=>{
+            TakeoverDemo ^=down;
         });
 
         demoRecorder = typeof(IdolShowdown.Managers.TrainingManager).GetField("demoRecorder",BindingFlags.NonPublic|BindingFlags.Instance);
