@@ -455,6 +455,9 @@ internal class ReplayEditor : IDisposable, IHarmony
         KeybindHelper.RegisterKeybind("Toggle Replay Window",0,(down)=>{
             Editing ^=down;
         });
+        KeybindHelper.RegisterKeybind("Toggle Replay After Block",0,(down)=>{
+            PlayAfterBlock ^=down;
+        });
 
         demoRecorder = typeof(IdolShowdown.Managers.TrainingManager).GetField("demoRecorder",BindingFlags.NonPublic|BindingFlags.Instance);
     }
