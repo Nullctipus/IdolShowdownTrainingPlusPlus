@@ -27,6 +27,10 @@ f10: Step One Frame
 ## Issues
 - Projectiles do not render
 
+## But I want to use MelonLoader mods
+
+See [MelonLoader for Bepinex](https://github.com/BepInEx/BepInEx.MelonLoader.Loader)
+
 ## Linux
 If you know how to install bepinex for linux you dont need this
 
