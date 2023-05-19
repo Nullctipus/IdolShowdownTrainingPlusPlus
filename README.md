@@ -54,3 +54,13 @@ Click the `Libraries` tab
 Under the label `New override for library` select winhttp and click add
 
 Exit out of protontricks and you can start the game
+
+## Why Not MelonLoader
+
+Melonloader is harder to develop for as it expects Visual Studio and/or .Net Framework to be used. This makes development on Linux hell.
+
+MelonLoader is more prone to breakage as BepInEx uses code analysers and imports Unity Modules from NuGet.
+
+MelonLoader does not like when people protect their source code. [Code](https://github.com/LavaGang/MelonLoader/blob/41071711aa1b20d340196000b51f862118c736be/MelonLoader/Utils/AssemblyVerifier.cs#LL80C35-L80C35)
+
+By extension machine generated code also will not load if MelonLoader detects it.
