@@ -30,5 +30,8 @@
   <Reference Include="Newtonsoft.Json">
     <HintPath>$(ManagedLocation)/Newtonsoft.Json.dll</HintPath>
   </Reference>
+  <Reference Include="Unity.Mathematics.FixedPoint">
+    <HintPath>$(ManagedLocation)/Unity.Mathematics.FixedPoint.dll</HintPath>
+  </Reference>
 </ItemGroup>
 </Project>
