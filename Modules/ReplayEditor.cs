@@ -45,7 +45,7 @@ internal class ReplayEditor : IDisposable, IHarmony
         foreach (char cc in line)
         {
             char c = cc;
-            if(MirrorInput){
+            /*if(MirrorInput){
                 switch(c){
                     case '1':
                         c = '3';
@@ -66,7 +66,9 @@ internal class ReplayEditor : IDisposable, IHarmony
                         c = '7';
                         break;
                 }
-            }
+            }*/
+            if(MirrorInput)
+                num ^= 32768;
             switch (c)
             {
                 case '1':
@@ -349,6 +351,7 @@ internal class ReplayEditor : IDisposable, IHarmony
             PlayAfterBlock = GUI.Toggle(new Rect(windowRect.width*0.9f-360,5,110,20),PlayAfterBlock,"Play After Block");
             PlayRight = GUI.Toggle(new Rect(windowRect.width*0.9f-470,5,110,20),PlayRight,"Play on Right");
             TakeoverDemo = GUI.Toggle(new Rect(windowRect.width*0.9f-580,5,110,20),TakeoverDemo,"Takeover Demo");
+            playbackAfterHitstun = GUI.Toggle(new Rect(windowRect.width*0.9f-690,5,110,20),playbackAfterHitstun,"Play After Hitstun");
             GUI.changed = false;
             data = GUI.TextArea(new Rect(5, 25, windowRect.width*0.9f-40, (dataLines+1) * 15),data);
             if(GUI.changed){
@@ -372,6 +375,33 @@ internal class ReplayEditor : IDisposable, IHarmony
         //PlayDemo(bool flipPlayer2 = false)
         Plugin.TryPatch(typeof(IdolShowdown.DemoRecorder).GetMethod("PlayDemo"),
             new HarmonyLib.HarmonyMethod(GetType().GetMethod(nameof(PlayDemo),BindingFlags.Static|BindingFlags.NonPublic)));
+        //public void UpdateMe()
+        Plugin.TryPatch(typeof(IdolShowdown.Managers.TrainingManager).GetMethod("UpdateMe"),
+            new HarmonyLib.HarmonyMethod(GetType().GetMethod(nameof(TrainingManagerUpdate),BindingFlags.Static|BindingFlags.NonPublic)));
+    }
+    private static void TrainingManagerUpdate(ref IdolShowdown.FighterAttackable ___player2Attackable, ref bool ___hitstunReceived, ref bool ___allowToReplayInput)
+    {
+        if (!playbackAfterHitstun || !PlayRight) return;
+	    
+	    	if (___player2Attackable == null)
+	    	{
+	    		___player2Attackable = IdolShowdown.Managers.GlobalManager.Instance.GameStateManager.Player2Reference.GetComponent<IdolShowdown.FighterAttackable>();
+	    	}
+	    	AnimatorStateInfo currentAnimatorStateInfo = ___player2Attackable.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0);
+	    	___hitstunReceived = ___player2Attackable.HitStun > 0m || currentAnimatorStateInfo.IsName("KnockDown") || currentAnimatorStateInfo.IsName("KnockDown_Air");
+	    	if (___hitstunReceived)
+	    	{
+	    			___allowToReplayInput = true;
+	    		
+	    	}
+	    	else if (___allowToReplayInput )
+	    	{
+                Plugin.Logging.LogInfo("Running");
+                //MirrorInput = true;
+                StartPlayback(GetInputs(data));
+	    		___allowToReplayInput = false;
+	    	}
+	    
     }
     private static bool PlayDemo(bool flipPlayer2)
     {
@@ -428,6 +458,7 @@ internal class ReplayEditor : IDisposable, IHarmony
     internal static bool MirrorInput;
     internal static bool PlayAfterBlock;
     internal static bool TakeoverDemo;
+    internal static bool playbackAfterHitstun;
 
     public ReplayEditor()
     {
