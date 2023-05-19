@@ -498,6 +498,9 @@ internal class ReplayEditor : IDisposable, IHarmony
         KeybindHelper.RegisterKeybind("Toggle Takeover Demo Block",0,(down)=>{
             TakeoverDemo ^=down;
         });
+        KeybindHelper.RegisterKeybind("Toggle Replay after Hitstun",0,(down)=>{
+            playbackAfterHitstun ^=down;
+        });
 
         demoRecorder = typeof(IdolShowdown.Managers.TrainingManager).GetField("demoRecorder",BindingFlags.NonPublic|BindingFlags.Instance);
     }
