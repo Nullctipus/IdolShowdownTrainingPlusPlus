@@ -347,11 +347,11 @@ internal class ReplayEditor : IDisposable, IHarmony
         GUI.Box(new Rect(windowRect.width/10f+20, 60, windowRect.width*0.9f-30, windowRect.height - 420), "Script Editor");
         TextEditorScroll = GUI.BeginScrollView(new Rect(windowRect.width/10f+20, 60, windowRect.width*0.9f-30, windowRect.height - 420), TextEditorScroll, new Rect(0, 0, windowRect.width*0.9f-40, (dataLines+1) * 15), false, false, GUIStyle.none, GUI.skin.verticalScrollbar);
             Loop = GUI.Toggle(new Rect(windowRect.width*0.9f-140,5,110,20),Loop,"Loop");
-            MirrorInput = GUI.Toggle(new Rect(windowRect.width*0.9f-250,5,110,20),MirrorInput,"Mirror");
-            PlayAfterBlock = GUI.Toggle(new Rect(windowRect.width*0.9f-360,5,110,20),PlayAfterBlock,"Play After Block");
-            PlayRight = GUI.Toggle(new Rect(windowRect.width*0.9f-470,5,110,20),PlayRight,"Play on Right");
-            TakeoverDemo = GUI.Toggle(new Rect(windowRect.width*0.9f-580,5,110,20),TakeoverDemo,"Takeover Demo");
-            playbackAfterHitstun = GUI.Toggle(new Rect(windowRect.width*0.9f-690,5,110,20),playbackAfterHitstun,"Play After Hitstun");
+            MirrorInput = GUI.Toggle(new Rect(windowRect.width*0.9f-230,5,110,20),MirrorInput,"Mirror");
+            PlayAfterBlock = GUI.Toggle(new Rect(windowRect.width*0.9f-340,5,110,20),PlayAfterBlock,"Play After Block");
+            PlayRight = GUI.Toggle(new Rect(windowRect.width*0.9f-450,5,110,20),PlayRight,"Play on Right");
+            TakeoverDemo = GUI.Toggle(new Rect(windowRect.width*0.9f-560,5,110,20),TakeoverDemo,"Takeover Demo");
+            playbackAfterHitstun = GUI.Toggle(new Rect(windowRect.width*0.9f-690,5,130,20),playbackAfterHitstun,"Play After Hitstun");
             GUI.changed = false;
             data = GUI.TextArea(new Rect(5, 25, windowRect.width*0.9f-40, (dataLines+1) * 15),data);
             if(GUI.changed){
