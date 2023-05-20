@@ -33,5 +33,8 @@
   <Reference Include="Unity.Mathematics.FixedPoint">
     <HintPath>$(ManagedLocation)/Unity.Mathematics.FixedPoint.dll</HintPath>
   </Reference>
+  <Reference Include="UnityEngine.UI">
+    <HintPath>$(ManagedLocation)/UnityEngine.UI.dll</HintPath>
+  </Reference>
 </ItemGroup>
 </Project>
