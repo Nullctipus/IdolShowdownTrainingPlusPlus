@@ -234,7 +234,7 @@ internal class ReplayEditor : IDisposable, IHarmony
         }
         set{
             if(_Editing != value)
-                windowRect = new(350, 50, Screen.width-450, Screen.height-100);
+                windowRect = new(400, 50, Screen.width-450, Screen.height-100);
 
             _Editing = value;
         }
@@ -290,7 +290,7 @@ internal class ReplayEditor : IDisposable, IHarmony
     static int ConsoleLines = 1;
     static List<string> files = new();
     int windowid = (PluginInfo.PLUGIN_GUID + nameof(ReplayEditor)).GetHashCode();
-    static Rect windowRect = new(350, 50, Screen.width-450, Screen.height-100);
+    static Rect windowRect = new(400, 50, Screen.width-450, Screen.height-100);
     static void Log(string text){
             Console += text+"\n";
             ++ConsoleLines;
