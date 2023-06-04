@@ -1,3 +1,6 @@
+# Deprecation Announcement
+As I have been added to the Idol Showdown Team, I will be deprecating this mod when feature parity is achieved.
+
 # Training++ For Idol Showdown
 
 ## Features
