@@ -25,9 +25,13 @@ internal class MeterViewer : IDisposable
     public MeterViewer(){
         Plugin.Logging.LogInfo("Loading Meter Viewer");
         Plugin.drawGUI += OnGUI;
+        KeybindHelper.RegisterKeybind("Toggle Meter Viewer",0,(down)=>{
+            DrawMeterValues ^= true;
+        });
     }
+    public static bool DrawMeterValues = true;
     private void OnGUI() {
-        if(!Plugin.IsTraining || !GlobalManager.Instance || GlobalManager.Instance.GameStateManager.Player1ObjectReference == null || GlobalManager.Instance.MatchRunner.CurrentMatch == null || GlobalManager.Instance.GameManager.IsPaused) return;
+        if(!Plugin.IsTraining || !GlobalManager.Instance || GlobalManager.Instance.GameStateManager.Player1ObjectReference == null || GlobalManager.Instance.MatchRunner.CurrentMatch == null || GlobalManager.Instance.GameManager.IsPaused || !DrawMeterValues) return;
         //Player 1
         GUI.Label(new Rect(Screen.width*.0977f,Screen.height*.9167f,200,50),$"{GlobalManager.Instance.GameStateManager.Player1ObjectReference.superMeter.currentSuperMeter}/{GlobalManager.Instance.GameStateManager.Player1ObjectReference.superMeter.superMeterMax}",Style);
         GUI.Label(new Rect(Screen.width*.0977f,Screen.height*.8785f,200,50),$"{GlobalManager.Instance.GameStateManager.Player1ObjectReference.superChat.SCMeter}/{GlobalManager.Instance.GameStateManager.Player1ObjectReference.superChat.MaxSCMeter}",Style);

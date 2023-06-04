@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HarmonyLib;
 using System.Reflection;
 using UnityEngine;
@@ -14,7 +15,12 @@ internal class GeneralPatches : IDisposable, IHarmony
     public void Dispose()
     {
     }
-    public GeneralPatches(){}
+    public GeneralPatches(){
+
+        KeybindHelper.RegisterKeybind("Toggle boxes",0,(down)=>{
+            DrawingBoxes ^= down;
+        });
+    }
     public void Patch(Harmony harmony){
         System.Type thisType = GetType();
         //public void SetGameMode(GameMode mode)
@@ -33,9 +39,28 @@ internal class GeneralPatches : IDisposable, IHarmony
         Plugin.IsTraining = mode == GameMode.training;
     }
     static Sprite flat = Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,Texture2D.whiteTexture.width,Texture2D.whiteTexture.height),Vector2.one/2);
+    internal static bool drawingBoxes = true;
+    internal static bool DrawingBoxes{
+        get{
+            return drawingBoxes;
+        }
+        set{
+            if(drawingBoxes == value) return;
+
+            drawingBoxes = value;
+            boxes.RemoveAll(x=>x==null);
+            foreach(var v in boxes){
+                if(!v.enabled && v.TryGetComponent<BoxDrawer>(out BoxDrawer bd))
+                    OnBoxDrawerAwake(bd);
+                v.enabled = drawingBoxes && Plugin.ShouldDrawGizmos;
+            }
+        }
+    }
+    internal static List<SpriteRenderer> boxes = new();
     internal static bool OnBoxDrawerAwake(BoxDrawer __instance)
     {
-        if (!Plugin.ShouldDrawGizmos) return true;
+        boxes.Add(__instance.GetComponent<SpriteRenderer>());
+        if (!drawingBoxes || !Plugin.ShouldDrawGizmos) return true;
         try{
         GameObject g = __instance.gameObject;
         GameObject.Destroy(__instance);

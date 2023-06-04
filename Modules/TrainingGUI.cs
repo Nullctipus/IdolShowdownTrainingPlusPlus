@@ -68,6 +68,8 @@ internal class TrainingGUI : IDisposable
     {
         scroll = GUILayout.BeginScrollView(scroll);
         Plugin.UseFlatTexture = GUILayout.Toggle(Plugin.UseFlatTexture, "Flat Box Texture");
+        GeneralPatches.DrawingBoxes = GUILayout.Toggle(GeneralPatches.DrawingBoxes, "Draw Boxes");
+        MeterViewer.DrawMeterValues = GUILayout.Toggle(MeterViewer.DrawMeterValues, "Draw Meter Values");
         ReplayEditor.Editing = GUILayout.Toggle(ReplayEditor.Editing , "Open Recording Editor");
         if (GUILayout.Button("Toggle Frame Walk Options"))
             FrameWalkDropdown ^= true;
